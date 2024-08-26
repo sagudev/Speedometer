@@ -6,6 +6,7 @@ class Params {
     // Enable a detailed developer menu to change the current Params.
     developerMode = false;
     startAutomatically = false;
+    headless = false;
     iterationCount = 10;
     suites = [];
     // A list of tags to filter suites
@@ -54,6 +55,10 @@ class Params {
         }
         this.startAutomatically = searchParams.has("startAutomatically");
         searchParams.delete("startAutomatically");
+        this.headless = searchParams.has("headless");
+        searchParams.delete("headless");
+        if (this.headless)
+            this.startAutomatically = true;
         if (searchParams.has("iterationCount")) {
             this.iterationCount = this._parseInt(searchParams.get("iterationCount"), "iterationCount");
             if (this.iterationCount < 1)

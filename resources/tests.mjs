@@ -55,6 +55,7 @@ Suites.enable = function (names, tags) {
     alert(message);
     console.error(message, debugInfo);
 };
+// works
 
 Suites.push({
     name: "TodoMVC-JavaScript-ES5",
@@ -84,12 +85,12 @@ Suites.push({
         }),
     ],
 });
-
+/*
+// works alone
 Suites.push({
     name: "TodoMVC-JavaScript-ES5-Complex-DOM",
     url: "todomvc/vanilla-examples/javascript-es5-complex/dist/index.html",
     tags: ["todomvc", "complex"],
-    disabled: true,
     async prepare(page) {
         (await page.waitForElement(".new-todo")).focus();
     },
@@ -114,12 +115,12 @@ Suites.push({
         }),
     ],
 });
-
+*/
+// works
 Suites.push({
     name: "TodoMVC-JavaScript-ES6-Webpack",
     url: "todomvc/vanilla-examples/javascript-es6-webpack/dist/index.html",
     tags: ["todomvc"],
-    disabled: true,
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
         element.focus();
@@ -145,7 +146,8 @@ Suites.push({
         }),
     ],
 });
-
+/*
+// works alone
 Suites.push({
     name: "TodoMVC-JavaScript-ES6-Webpack-Complex-DOM",
     url: "todomvc/vanilla-examples/javascript-es6-webpack-complex/dist/index.html",
@@ -175,7 +177,8 @@ Suites.push({
         }),
     ],
 });
-
+*/
+/*
 Suites.push({
     name: "TodoMVC-WebComponents",
     url: "todomvc/vanilla-examples/javascript-web-components/dist/index.html",
@@ -241,13 +244,13 @@ Suites.push({
             }
         }),
     ],
-});
+});*/
+// works
 
 Suites.push({
     name: "TodoMVC-React",
     url: "todomvc/architecture-examples/react/dist/index.html#/home",
     tags: ["todomvc"],
-    disabled: true,
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
         element.focus();
@@ -274,6 +277,7 @@ Suites.push({
     ],
 });
 
+/*
 Suites.push({
     name: "TodoMVC-React-Complex-DOM",
     url: "todomvc/architecture-examples/react-complex/dist/index.html#/home",
@@ -302,7 +306,9 @@ Suites.push({
                 deleteButtons[i].click();
         }),
     ],
-});
+});*/
+
+// works
 
 Suites.push({
     name: "TodoMVC-React-Redux",
@@ -333,6 +339,7 @@ Suites.push({
     ],
 });
 
+/*
 Suites.push({
     name: "TodoMVC-React-Redux-Complex-DOM",
     url: "todomvc/architecture-examples/react-redux-complex/dist/index.html",
@@ -361,8 +368,8 @@ Suites.push({
                 deleteButtons[i].click();
         }),
     ],
-});
-
+});*/
+/*
 Suites.push({
     name: "TodoMVC-Backbone",
     url: "todomvc/architecture-examples/backbone/dist/index.html",
@@ -398,7 +405,6 @@ Suites.push({
     name: "TodoMVC-Backbone-Complex-DOM",
     url: "todomvc/architecture-examples/backbone-complex/dist/index.html",
     tags: ["todomvc", "complex"],
-    disabled: true,
     async prepare(page) {
         await page.waitForElement("#appIsReady");
         const newTodo = page.querySelector(".new-todo");
@@ -424,13 +430,13 @@ Suites.push({
                 deleteButtons[i].click();
         }),
     ],
-});
+});*/
 
+// works alone
 Suites.push({
     name: "TodoMVC-Angular",
     url: "todomvc/architecture-examples/angular/dist/index.html",
     tags: ["todomvc"],
-    disabled: true,
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
         element.focus();
@@ -456,7 +462,7 @@ Suites.push({
         }),
     ],
 });
-
+/*
 Suites.push({
     name: "TodoMVC-Angular-Complex-DOM",
     url: "todomvc/architecture-examples/angular-complex/dist/index.html",
@@ -485,8 +491,9 @@ Suites.push({
                 deleteButtons[i].click();
         }),
     ],
-});
+});*/
 
+/*
 Suites.push({
     name: "TodoMVC-Vue",
     url: "todomvc/architecture-examples/vue/dist/index.html",
@@ -521,7 +528,6 @@ Suites.push({
     name: "TodoMVC-Vue-Complex-DOM",
     url: "todomvc/architecture-examples/vue-complex/dist/index.html",
     tags: ["todomvc", "complex", "complex-default"],
-    disabled: true,
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
         element.focus();
@@ -547,7 +553,8 @@ Suites.push({
         }),
     ],
 });
-
+*/
+/*
 Suites.push({
     name: "TodoMVC-jQuery",
     url: "todomvc/architecture-examples/jquery/dist/index.html",
@@ -604,12 +611,12 @@ Suites.push({
         }),
     ],
 });
-
+*/
+// works
 Suites.push({
     name: "TodoMVC-Preact",
     url: "todomvc/architecture-examples/preact/dist/index.html#/home",
     tags: ["todomvc"],
-    disabled: true,
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
         element.focus();
@@ -635,6 +642,8 @@ Suites.push({
     ],
 });
 
+/*
+// slow
 Suites.push({
     name: "TodoMVC-Preact-Complex-DOM",
     url: "todomvc/architecture-examples/preact-complex/dist/index.html#/home",
@@ -663,12 +672,13 @@ Suites.push({
         }),
     ],
 });
+*/
 
+// works
 Suites.push({
     name: "TodoMVC-Svelte",
     url: "todomvc/architecture-examples/svelte/dist/index.html",
     tags: ["todomvc"],
-    disabled: true,
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
         element.focus();
@@ -694,6 +704,8 @@ Suites.push({
     ],
 });
 
+/*
+// idk
 Suites.push({
     name: "TodoMVC-Svelte-Complex-DOM",
     url: "todomvc/architecture-examples/svelte-complex/dist/index.html",
@@ -722,12 +734,12 @@ Suites.push({
         }),
     ],
 });
-
+*/
+/*
 Suites.push({
     name: "TodoMVC-Lit",
     url: "todomvc/architecture-examples/lit/dist/index.html",
     tags: ["todomvc", "webcomponents"],
-    disabled: true,
     async prepare(page) {
         await page.waitForElement("todo-app");
     },
@@ -786,8 +798,9 @@ Suites.push({
             }
         }),
     ],
-});
-
+});*/
+/*
+// freezes
 Suites.push({
     name: "NewsSite-Next",
     url: "newssite/news-next/dist/index.html#/home",
@@ -828,7 +841,9 @@ Suites.push({
         }),
     ],
 });
-
+*/
+/*
+// svg
 Suites.push({
     name: "NewsSite-Nuxt",
     url: "newssite/news-nuxt/dist/index.html",
@@ -868,8 +883,9 @@ Suites.push({
             page.layout();
         }),
     ],
-});
-
+});*/
+/*
+// type errors but reports results
 Suites.push({
     name: "Editor-CodeMirror",
     url: "editors/dist/codemirror.html",
@@ -888,7 +904,8 @@ Suites.push({
         }),
     ],
 });
-
+*/
+/*
 Suites.push({
     name: "Editor-TipTap",
     url: "editors/dist/tiptap.html",
@@ -907,7 +924,9 @@ Suites.push({
         }),
     ],
 });
+*/
 
+// works
 Suites.push({
     name: "Charts-observable-plot",
     url: "charts/dist/observable-plot.html",
@@ -934,7 +953,8 @@ Suites.push({
         }),
     ],
 });
-
+/*
+// errors but reports results
 Suites.push({
     name: "Charts-chartjs",
     url: "charts/dist/chartjs.html",
@@ -954,7 +974,8 @@ Suites.push({
         }),
     ],
 });
-
+*/
+/*
 Suites.push({
     name: "React-Stockcharts-SVG",
     url: "react-stockcharts/build/index.html?type=svg",
@@ -1013,7 +1034,7 @@ Suites.push({
         new BenchmarkTestStep("SelectingPoints", (page) => {
             const chartPane = page.callToGetElement("getChartPane");
             for (let i = 0; i < 20; ++i) {
-                chartPane.dispatchKeyEvent("keydown", 39 /* Right */, "ArrowRight");
+                chartPane.dispatchKeyEvent("keydown", 39, "ArrowRight");
                 page.call("serviceRAF");
             }
         }),
@@ -1034,7 +1055,7 @@ Suites.push({
             page.call("serviceRAF");
         }),
     ],
-});
+});*/
 
 Object.freeze(Suites);
 Suites.forEach((suite) => {

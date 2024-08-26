@@ -56,7 +56,7 @@ Suites.enable = function (names, tags) {
     console.error(message, debugInfo);
 };
 
-Suites.push({
+/*Suites.push({
     name: "TodoMVC-JavaScript-ES5",
     url: "todomvc/vanilla-examples/javascript-es5/dist/index.html",
     tags: ["todomvc"],
@@ -786,7 +786,7 @@ Suites.push({
             }
         }),
     ],
-});
+});*/
 
 Suites.push({
     name: "NewsSite-Next",
@@ -869,7 +869,7 @@ Suites.push({
         }),
     ],
 });
-
+/*
 Suites.push({
     name: "Editor-CodeMirror",
     url: "editors/dist/codemirror.html",
@@ -1013,7 +1013,7 @@ Suites.push({
         new BenchmarkTestStep("SelectingPoints", (page) => {
             const chartPane = page.callToGetElement("getChartPane");
             for (let i = 0; i < 20; ++i) {
-                chartPane.dispatchKeyEvent("keydown", 39 /* Right */, "ArrowRight");
+                chartPane.dispatchKeyEvent("keydown", 39, "ArrowRight");
                 page.call("serviceRAF");
             }
         }),
@@ -1034,7 +1034,7 @@ Suites.push({
             page.call("serviceRAF");
         }),
     ],
-});
+});*/
 
 Object.freeze(Suites);
 Suites.forEach((suite) => {

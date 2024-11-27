@@ -142,6 +142,11 @@ class MainBenchmarkClient {
         this._metrics = metrics;
 
         const scoreResults = this._computeResults(this._measuredValuesList, "score");
+        if (params.headless) {
+            console.log(this._formattedJSONResult({ modern: true }));
+            window.close();
+            return;
+        }
         if (scoreResults.isValid)
             this._populateValidScore(scoreResults);
         else

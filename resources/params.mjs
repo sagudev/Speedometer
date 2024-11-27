@@ -55,6 +55,10 @@ class Params {
         this.warmupBeforeSync = this._parseIntParam(searchParams, "warmupBeforeSync", 0);
         this.measurementMethod = this._parseMeasurementMethod(searchParams);
         this.shuffleSeed = this._parseShuffleSeed(searchParams);
+        this.headless = searchParams.has("headless");
+        searchParams.delete("headless");
+        if (this.headless)
+            this.startAutomatically = true;
 
         const unused = Array.from(searchParams.keys());
         if (unused.length > 0)

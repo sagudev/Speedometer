@@ -1,4 +1,6 @@
 import { BenchmarkRunner } from "../resources/benchmark-runner.mjs";
+import { SuiteRunner } from "../resources/suite-runner.mjs";
+import { TestRunner } from "../resources/test-runner.mjs";
 import { defaultParams } from "../resources/params.mjs";
 
 function TEST_FIXTURE(name) {
@@ -11,10 +13,12 @@ function TEST_FIXTURE(name) {
 const SUITES_FIXTURE = [
     {
         name: "Suite 1",
+        async prepare(page) {},
         tests: [TEST_FIXTURE("Test 1"), TEST_FIXTURE("Test 2"), TEST_FIXTURE("Test 3")],
     },
     {
         name: "Suite 2",
+        async prepare(page) {},
         tests: [TEST_FIXTURE("Test 1")],
     },
 ];
@@ -106,15 +110,28 @@ describe("BenchmarkRunner", () => {
     });
 
     describe("Suite", () => {
-        describe("_runAllSuites", () => {
-            let _runSuiteStub, _finalizeStub, _removeFrameStub;
+        describe("runAllSuites", () => {
+            let _runSuiteStub, _finalizeStub, _loadFrameStub, _appendFrameStub, _removeFrameStub;
 
             before(async () => {
-                _runSuiteStub = stub(runner, "_runSuite").callsFake(() => null);
-                _finalizeStub = stub(runner, "_finalize").callsFake(() => null);
+                _runSuiteStub = stub(SuiteRunner.prototype, "_runSuite").callsFake(async () => null);
+                _finalizeStub = stub(runner, "_finalize").callsFake(async () => null);
+                _loadFrameStub = stub(SuiteRunner.prototype, "_loadFrame").callsFake(async () => null);
+                _appendFrameStub = stub(runner, "_appendFrame").callsFake(async () => null);
                 _removeFrameStub = stub(runner, "_removeFrame").callsFake(() => null);
+                for (const suite of runner._suites)
+                    spy(suite, "prepare");
+                expect(runner._suites).not.to.have.length(0);
+                await runner.runAllSuites();
+            });
 
-                await runner._runAllSuites();
+            it("should call prepare on all suites", () => {
+                let suitesPrepareCount = 0;
+                for (const suite of runner._suites) {
+                    suitesPrepareCount += 1;
+                    assert.calledOnce(suite.prepare);
+                }
+                expect(suitesPrepareCount).equal(SUITES_FIXTURE.length);
             });
 
             it("should run all test suites", async () => {
@@ -122,6 +139,8 @@ describe("BenchmarkRunner", () => {
             });
 
             it("should remove the previous frame and then the current frame", () => {
+                assert.calledTwice(_loadFrameStub);
+                assert.calledTwice(_appendFrameStub);
                 assert.calledTwice(_removeFrameStub);
             });
 
@@ -130,26 +149,31 @@ describe("BenchmarkRunner", () => {
             });
         });
 
-        describe("_runSuite", () => {
-            let _prepareSuiteStub, _runTestAndRecordResultsStub, performanceMarkSpy;
+        describe("runSuite", () => {
+            let _prepareSuiteSpy, _loadFrameStub, _runTestStub, _validateSuiteTotalStub, _suitePrepareSpy, performanceMarkSpy;
 
             const suite = SUITES_FIXTURE[0];
 
             before(async () => {
-                _prepareSuiteStub = stub(runner, "_prepareSuite").callsFake(() => null);
-
-                _runTestAndRecordResultsStub = stub(runner, "_runTestAndRecordResults").callsFake(() => null);
-
+                _prepareSuiteSpy = spy(SuiteRunner.prototype, "_prepareSuite");
+                _loadFrameStub = stub(SuiteRunner.prototype, "_loadFrame").callsFake(async () => null);
+                _runTestStub = stub(TestRunner.prototype, "runTest").callsFake(async () => null);
+                _validateSuiteTotalStub = stub(SuiteRunner.prototype, "_validateSuiteTotal").callsFake(async () => null);
                 performanceMarkSpy = spy(window.performance, "mark");
-                runner._runSuite(suite);
+                _suitePrepareSpy = spy(suite, "prepare");
+
+                await runner.runSuite(suite);
             });
 
             it("should prepare the suite first", async () => {
-                assert.calledOnce(_prepareSuiteStub);
+                assert.calledOnce(_prepareSuiteSpy);
+                assert.calledOnce(_suitePrepareSpy);
+                assert.calledOnce(_loadFrameStub);
             });
 
             it("should run and record results for every test in suite", async () => {
-                assert.calledThrice(_runTestAndRecordResultsStub);
+                assert.calledThrice(_runTestStub);
+                assert.calledOnce(_validateSuiteTotalStub);
                 assert.calledWith(performanceMarkSpy, "suite-Suite 1-prepare-start");
                 assert.calledWith(performanceMarkSpy, "suite-Suite 1-prepare-end");
                 assert.calledWith(performanceMarkSpy, "suite-Suite 1-start");
@@ -164,11 +188,14 @@ describe("BenchmarkRunner", () => {
             let performanceMarkSpy;
 
             const suite = SUITES_FIXTURE[0];
+            const params = { measurementMethod: "raf" };
 
             before(async () => {
+                runner._suite = suite;
                 await runner._appendFrame();
                 performanceMarkSpy = spy(window.performance, "mark");
-                await runner._runTestAndRecordResults(suite, suite.tests[0]);
+                const suiteRunner = new SuiteRunner(runner._frame, runner._page, params, suite, runner._client, runner._measuredValues);
+                await suiteRunner._runSuite();
             });
 
             it("should run client pre and post hooks if present", () => {
@@ -181,7 +208,11 @@ describe("BenchmarkRunner", () => {
                 assert.calledWith(performanceMarkSpy, "Suite 1.Test 1-sync-end");
                 assert.calledWith(performanceMarkSpy, "Suite 1.Test 1-async-start");
                 assert.calledWith(performanceMarkSpy, "Suite 1.Test 1-async-end");
-                expect(performanceMarkSpy.callCount).to.equal(4);
+
+                // SuiteRunner adds 2 marks.
+                // Suite used here contains 3 tests.
+                // Each Testrunner adds 4 marks.
+                expect(performanceMarkSpy.callCount).to.equal(14);
             });
         });
 
@@ -194,6 +225,8 @@ describe("BenchmarkRunner", () => {
                 const asyncStart = 12000;
                 const asyncEnd = 13000;
 
+                const params = { measurementMethod: "raf" };
+
                 before(async () => {
                     stub(runner, "_measuredValues").value({
                         tests: {},
@@ -202,7 +235,8 @@ describe("BenchmarkRunner", () => {
                     stubPerformanceNowCalls(syncStart, syncEnd, asyncStart, asyncEnd);
 
                     // instantiate recorded test results
-                    await runner._runTestAndRecordResults(suite, suite.tests[0]);
+                    const suiteRunner = new SuiteRunner(runner._frame, runner._page, params, suite, runner._client, runner._measuredValues);
+                    await suiteRunner._runSuite();
 
                     await runner._finalize();
                 });

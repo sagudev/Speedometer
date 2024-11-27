@@ -41,78 +41,56 @@ function span(text) {
 }
 
 function createUIForMeasurementMethod() {
-    let check = document.createElement("input");
-    check.type = "checkbox";
-    check.id = "measurement-method";
-    check.checked = params.measurementMethod === "raf";
-
-    check.onchange = () => {
-        params.measurementMethod = check.checked ? "raf" : "timer";
-        updateURL();
-    };
-
-    let label = document.createElement("label");
-    label.append(check, " ", span("rAF timing"));
-
-    return label;
+    return createCheckboxUI("rAF timing", params.measurementMethod === "raf", (isChecked) => {
+        params.measurementMethod = isChecked ? "raf" : "timer";
+    });
 }
 
 function createUIForWarmupSuite() {
-    let check = document.createElement("input");
-    check.type = "checkbox";
-    check.id = "warmup-suite";
-    check.checked = !!params.useWarmupSuite;
+    return createCheckboxUI("Use Warmup Suite", params.useWarmupSuite, (isChecked) => {
+        params.useWarmupSuite = isChecked;
+    });
+}
 
-    check.onchange = () => {
-        params.useWarmupSuite = check.checked;
+function createCheckboxUI(labelValue, initialValue, paramsUpdateCallback) {
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = !!initialValue;
+    checkbox.onchange = () => {
+        paramsUpdateCallback(checkbox.checked);
         updateURL();
     };
 
-    let label = document.createElement("label");
-    label.append(check, " ", span("Use Warmup Suite"));
+    const label = document.createElement("label");
+    label.append(checkbox, " ", span(labelValue));
 
     return label;
 }
 
 function createUIForIterationCount() {
-    const { range, label } = createTimeRangeUI("Iterations: ", params.iterationCount, "#", 1, 200);
-    range.onchange = () => {
-        params.iterationCount = parseInt(range.value);
-        updateURL();
-    };
-    return label;
+    return createTimeRangeUI("Iterations: ", "iterationCount", "#", 1, 200);
 }
 
 function createUIForWarmupBeforeSync() {
-    const { range, label } = createTimeRangeUI("Warmup time: ", params.warmupBeforeSync);
-    range.onchange = () => {
-        params.warmupBeforeSync = parseInt(range.value);
-        updateURL();
-    };
-    return label;
+    return createTimeRangeUI("Warmup time: ", "warmupBeforeSync");
 }
 
 function createUIForSyncStepDelay() {
-    const { range, label } = createTimeRangeUI("Sync step delay: ", params.waitBeforeSync);
-    range.onchange = () => {
-        params.waitBeforeSync = parseInt(range.value);
-        updateURL();
-    };
-    return label;
+    return createTimeRangeUI("Sync step delay: ", "waitBeforeSync");
 }
 
-function createTimeRangeUI(labelText, initialValue, unit = "ms", min = 0, max = 1000) {
+function createTimeRangeUI(labelText, paramKey, unit = "ms", min = 0, max = 1000) {
     const range = document.createElement("input");
     range.type = "range";
     range.min = min;
     range.max = max;
-    range.value = initialValue;
+    range.value = params[paramKey];
 
     const rangeValueAndUnit = document.createElement("span");
     rangeValueAndUnit.className = "range-label-data";
 
     const rangeValue = document.createElement("span");
-    rangeValue.textContent = initialValue;
+    rangeValue.textContent = params[paramKey];
     rangeValueAndUnit.append(rangeValue, " ", unit);
 
     const label = document.createElement("label");
@@ -121,20 +99,26 @@ function createTimeRangeUI(labelText, initialValue, unit = "ms", min = 0, max = 
     range.oninput = () => {
         rangeValue.textContent = range.value;
     };
+    range.onchange = () => {
+        params[paramKey] = parseInt(range.value);
+        updateURL();
+    };
 
-    return { range, label };
+    return label;
 }
 
 function createUIForSuites() {
     const control = document.createElement("nav");
     control.className = "suites";
-    const ol = document.createElement("ol");
     const checkboxes = [];
     const setSuiteEnabled = (suiteIndex, enabled) => {
         Suites[suiteIndex].disabled = !enabled;
         checkboxes[suiteIndex].checked = enabled;
     };
 
+    control.appendChild(createSuitesGlobalSelectButtons(setSuiteEnabled));
+
+    const ol = document.createElement("ol");
     for (const suite of Suites) {
         const li = document.createElement("li");
         const checkbox = document.createElement("input");
@@ -164,7 +148,12 @@ function createUIForSuites() {
         ol.appendChild(li);
     }
     control.appendChild(ol);
-    let buttons = control.appendChild(document.createElement("div"));
+    control.appendChild(createSuitesTagsButton(setSuiteEnabled));
+    return control;
+}
+
+function createSuitesGlobalSelectButtons(setSuiteEnabled) {
+    const buttons = document.createElement("div");
     buttons.className = "button-bar";
 
     let button = document.createElement("button");
@@ -186,18 +175,24 @@ function createUIForSuites() {
         updateURL();
     };
     buttons.appendChild(button);
+    return buttons;
+}
 
+function createSuitesTagsButton(setSuiteEnabled) {
+    let tags = document.createElement("div");
+    let buttons = tags.appendChild(document.createElement("div"));
+    buttons.className = "button-bar";
     let i = 0;
     const kTagsPerLine = 3;
     for (const tag of Tags) {
         if (tag === "all")
             continue;
         if (!(i % kTagsPerLine)) {
-            buttons = control.appendChild(document.createElement("div"));
+            buttons = tags.appendChild(document.createElement("div"));
             buttons.className = "button-bar";
         }
         i++;
-        button = document.createElement("button");
+        const button = document.createElement("button");
         button.className = "tag";
         button.textContent = `#${tag}`;
         button.dataTag = tag;
@@ -217,19 +212,24 @@ function createUIForSuites() {
         };
         buttons.appendChild(button);
     }
-
-    return control;
+    return tags;
 }
 
 function createUIForRun() {
-    let button = document.createElement("button");
-    button.textContent = "Start Test";
-    button.onclick = (event) => {
+    const stepTestButton = document.createElement("button");
+    stepTestButton.textContent = "Step Test \u23EF";
+    stepTestButton.onclick = (event) => {
+        globalThis.benchmarkClient.step();
+    };
+    const startTestButton = document.createElement("button");
+    startTestButton.textContent = "Start Test \u23F5";
+    startTestButton.onclick = (event) => {
         globalThis.benchmarkClient.start();
     };
-    let buttons = document.createElement("div");
+    const buttons = document.createElement("div");
     buttons.className = "button-bar";
-    buttons.appendChild(button);
+    buttons.appendChild(stepTestButton);
+    buttons.appendChild(startTestButton);
     return buttons;
 }
 
@@ -240,13 +240,10 @@ function updateURL() {
     // to comma separate only the selected
     const selectedSuites = Suites.filter((suite) => !suite.disabled);
 
-    if (!selectedSuites.length) {
-        url.searchParams.delete("tags");
-        url.searchParams.delete("suites");
-        url.searchParams.delete("suite");
-    } else {
-        url.searchParams.delete("tags");
-        url.searchParams.delete("suite");
+    url.searchParams.delete("tags");
+    url.searchParams.delete("suites");
+    url.searchParams.delete("suite");
+    if (selectedSuites.length) {
         // Try finding common tags that would result in the current suite selection.
         let commonTags = new Set(selectedSuites[0].tags);
         for (const suite of Suites) {
@@ -255,26 +252,18 @@ function updateURL() {
             else
                 commonTags = new Set(suite.tags.filter((tag) => commonTags.has(tag)));
         }
-        if (commonTags.size) {
+        if (selectedSuites.length > 1 && commonTags.size) {
             const tags = [...commonTags][0];
-            if (tags === "default")
-                url.searchParams.delete("tags");
-            else
+            if (tags !== "default")
                 url.searchParams.set("tags", tags);
             url.searchParams.delete("suites");
         } else {
-            url.searchParams.delete("tags");
             url.searchParams.set("suites", selectedSuites.map((suite) => suite.name).join(","));
         }
     }
 
-    if (params.measurementMethod !== "raf")
-        url.searchParams.set("measurementMethod", "timer");
-    else
-        url.searchParams.delete("measurementMethod");
-
-    const boolParamKeys = ["iterationCount", "useWarmupSuite", "warmupBeforeSync", "waitBeforeSync"];
-    for (const paramKey of boolParamKeys) {
+    const defaultParamKeys = ["measurementMethod", "iterationCount", "useWarmupSuite", "warmupBeforeSync", "waitBeforeSync"];
+    for (const paramKey of defaultParamKeys) {
         if (params[paramKey] !== defaultParams[paramKey])
             url.searchParams.set(paramKey, params[paramKey]);
         else

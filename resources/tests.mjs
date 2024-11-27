@@ -58,8 +58,73 @@ Suites.enable = function (names, tags) {
 // works
 
 Suites.push({
+    name: "TodoMVC-LocalStorage",
+    url: "experimental/todomvc-localstorage/dist/index.html",
+    tags: ["todomvc"],
+    disabled: true,
+    async prepare(page) {
+        (await page.waitForElement(".new-todo")).focus();
+        page.getLocalStorage().getItem("javascript-es5");
+    },
+    tests: [
+        new BenchmarkTestStep(`Adding${numberOfItemsToAdd}Items`, (page) => {
+            const newTodo = page.querySelector(".new-todo");
+            for (let i = 0; i < numberOfItemsToAdd; i++) {
+                newTodo.setValue(getTodoText("ja", i));
+                newTodo.dispatchEvent("change");
+                newTodo.enter("keypress");
+            }
+        }),
+        new BenchmarkTestStep("CompletingAllItems", (page) => {
+            const checkboxes = page.querySelectorAll(".toggle");
+            for (let i = 0; i < numberOfItemsToAdd; i++)
+                checkboxes[i].click();
+        }),
+        new BenchmarkTestStep("DeletingAllItems", (page) => {
+            const deleteButtons = page.querySelectorAll(".destroy");
+            for (let i = numberOfItemsToAdd - 1; i >= 0; i--)
+                deleteButtons[i].click();
+        }),
+    ],
+});
+
+Suites.push({
+    name: "TodoMVC-Emoji",
+    url: "resources/todomvc/vanilla-examples/javascript-web-components/dist/index.html",
+    tags: ["todomvc", "experimental"],
+    disabled: true,
+    async prepare(page) {
+        await page.waitForElement("todo-app");
+    },
+    tests: [
+        new BenchmarkTestStep(`Adding${numberOfItemsToAdd}Items`, (page) => {
+            const input = page.querySelector(".new-todo-input", ["todo-app", "todo-topbar"]);
+            for (let i = 0; i < numberOfItemsToAdd; i++) {
+                input.setValue(getTodoText("emoji", i));
+                input.dispatchEvent("input");
+                input.enter("keyup");
+            }
+        }),
+        new BenchmarkTestStep("CompletingAllItems", (page) => {
+            const items = page.querySelectorAll("todo-item", ["todo-app", "todo-list"]);
+            for (let i = 0; i < numberOfItemsToAdd; i++) {
+                const item = items[i].querySelectorInShadowRoot(".toggle-todo-input");
+                item.click();
+            }
+        }),
+        new BenchmarkTestStep("DeletingAllItems", (page) => {
+            const items = page.querySelectorAll("todo-item", ["todo-app", "todo-list"]);
+            for (let i = numberOfItemsToAdd - 1; i >= 0; i--) {
+                const item = items[i].querySelectorInShadowRoot(".remove-todo-button");
+                item.click();
+            }
+        }),
+    ],
+});
+
+Suites.push({
     name: "TodoMVC-JavaScript-ES5",
-    url: "todomvc/vanilla-examples/javascript-es5/dist/index.html",
+    url: "resources/todomvc/vanilla-examples/javascript-es5/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         (await page.waitForElement(".new-todo")).focus();
@@ -89,7 +154,7 @@ Suites.push({
 // works alone
 Suites.push({
     name: "TodoMVC-JavaScript-ES5-Complex-DOM",
-    url: "todomvc/vanilla-examples/javascript-es5-complex/dist/index.html",
+    url: "resources/todomvc/vanilla-examples/javascript-es5-complex/dist/index.html",
     tags: ["todomvc", "complex"],
     async prepare(page) {
         (await page.waitForElement(".new-todo")).focus();
@@ -119,7 +184,7 @@ Suites.push({
 // works
 Suites.push({
     name: "TodoMVC-JavaScript-ES6-Webpack",
-    url: "todomvc/vanilla-examples/javascript-es6-webpack/dist/index.html",
+    url: "resources/todomvc/vanilla-examples/javascript-es6-webpack/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -150,7 +215,7 @@ Suites.push({
 // works alone
 Suites.push({
     name: "TodoMVC-JavaScript-ES6-Webpack-Complex-DOM",
-    url: "todomvc/vanilla-examples/javascript-es6-webpack-complex/dist/index.html",
+    url: "resources/todomvc/vanilla-examples/javascript-es6-webpack-complex/dist/index.html",
     tags: ["todomvc", "complex", "complex-default"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -181,7 +246,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-WebComponents",
-    url: "todomvc/vanilla-examples/javascript-web-components/dist/index.html",
+    url: "resources/todomvc/vanilla-examples/javascript-web-components/dist/index.html",
     tags: ["todomvc", "webcomponents"],
     async prepare(page) {
         await page.waitForElement("todo-app");
@@ -214,7 +279,7 @@ Suites.push({
 
 Suites.push({
     name: "TodoMVC-WebComponents-Complex-DOM",
-    url: "todomvc/vanilla-examples/javascript-web-components-complex/dist/index.html",
+    url: "resources/todomvc/vanilla-examples/javascript-web-components-complex/dist/index.html",
     tags: ["todomvc", "webcomponents", "complex"],
     disabled: true,
     async prepare(page) {
@@ -249,7 +314,7 @@ Suites.push({
 
 Suites.push({
     name: "TodoMVC-React",
-    url: "todomvc/architecture-examples/react/dist/index.html#/home",
+    url: "resources/todomvc/architecture-examples/react/dist/index.html#/home",
     tags: ["todomvc"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -280,7 +345,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-React-Complex-DOM",
-    url: "todomvc/architecture-examples/react-complex/dist/index.html#/home",
+    url: "resources/todomvc/architecture-examples/react-complex/dist/index.html#/home",
     tags: ["todomvc", "complex", "complex-default"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -312,7 +377,7 @@ Suites.push({
 
 Suites.push({
     name: "TodoMVC-React-Redux",
-    url: "todomvc/architecture-examples/react-redux/dist/index.html",
+    url: "resources/todomvc/architecture-examples/react-redux/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -342,7 +407,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-React-Redux-Complex-DOM",
-    url: "todomvc/architecture-examples/react-redux-complex/dist/index.html",
+    url: "resources/todomvc/architecture-examples/react-redux-complex/dist/index.html",
     tags: ["todomvc", "complex"],
     disabled: true,
     async prepare(page) {
@@ -372,7 +437,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-Backbone",
-    url: "todomvc/architecture-examples/backbone/dist/index.html",
+    url: "resources/todomvc/architecture-examples/backbone/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         await page.waitForElement("#appIsReady");
@@ -403,7 +468,7 @@ Suites.push({
 
 Suites.push({
     name: "TodoMVC-Backbone-Complex-DOM",
-    url: "todomvc/architecture-examples/backbone-complex/dist/index.html",
+    url: "resources/todomvc/architecture-examples/backbone-complex/dist/index.html",
     tags: ["todomvc", "complex"],
     async prepare(page) {
         await page.waitForElement("#appIsReady");
@@ -435,7 +500,7 @@ Suites.push({
 // works alone
 Suites.push({
     name: "TodoMVC-Angular",
-    url: "todomvc/architecture-examples/angular/dist/index.html",
+    url: "resources/todomvc/architecture-examples/angular/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -465,7 +530,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-Angular-Complex-DOM",
-    url: "todomvc/architecture-examples/angular-complex/dist/index.html",
+    url: "resources/todomvc/architecture-examples/angular-complex/dist/index.html",
     tags: ["todomvc", "complex", "complex-default"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -496,7 +561,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-Vue",
-    url: "todomvc/architecture-examples/vue/dist/index.html",
+    url: "resources/todomvc/architecture-examples/vue/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -526,7 +591,7 @@ Suites.push({
 
 Suites.push({
     name: "TodoMVC-Vue-Complex-DOM",
-    url: "todomvc/architecture-examples/vue-complex/dist/index.html",
+    url: "resources/todomvc/architecture-examples/vue-complex/dist/index.html",
     tags: ["todomvc", "complex", "complex-default"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -557,7 +622,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-jQuery",
-    url: "todomvc/architecture-examples/jquery/dist/index.html",
+    url: "resources/todomvc/architecture-examples/jquery/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         await page.waitForElement("#appIsReady");
@@ -585,7 +650,7 @@ Suites.push({
 
 Suites.push({
     name: "TodoMVC-jQuery-Complex-DOM",
-    url: "todomvc/architecture-examples/jquery-complex/dist/index.html",
+    url: "resources/todomvc/architecture-examples/jquery-complex/dist/index.html",
     tags: ["todomvc", "complex"],
     disabled: true,
     async prepare(page) {
@@ -615,7 +680,7 @@ Suites.push({
 // works
 Suites.push({
     name: "TodoMVC-Preact",
-    url: "todomvc/architecture-examples/preact/dist/index.html#/home",
+    url: "resources/todomvc/architecture-examples/preact/dist/index.html#/home",
     tags: ["todomvc"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -646,7 +711,7 @@ Suites.push({
 // slow
 Suites.push({
     name: "TodoMVC-Preact-Complex-DOM",
-    url: "todomvc/architecture-examples/preact-complex/dist/index.html#/home",
+    url: "resources/todomvc/architecture-examples/preact-complex/dist/index.html#/home",
     tags: ["todomvc", "complex", "complex-default"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -677,7 +742,7 @@ Suites.push({
 // works
 Suites.push({
     name: "TodoMVC-Svelte",
-    url: "todomvc/architecture-examples/svelte/dist/index.html",
+    url: "resources/todomvc/architecture-examples/svelte/dist/index.html",
     tags: ["todomvc"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -708,7 +773,7 @@ Suites.push({
 // idk
 Suites.push({
     name: "TodoMVC-Svelte-Complex-DOM",
-    url: "todomvc/architecture-examples/svelte-complex/dist/index.html",
+    url: "resources/todomvc/architecture-examples/svelte-complex/dist/index.html",
     tags: ["todomvc", "complex", "complex-default"],
     async prepare(page) {
         const element = await page.waitForElement(".new-todo");
@@ -738,7 +803,7 @@ Suites.push({
 /*
 Suites.push({
     name: "TodoMVC-Lit",
-    url: "todomvc/architecture-examples/lit/dist/index.html",
+    url: "resources/todomvc/architecture-examples/lit/dist/index.html",
     tags: ["todomvc", "webcomponents"],
     async prepare(page) {
         await page.waitForElement("todo-app");
@@ -770,7 +835,7 @@ Suites.push({
 
 Suites.push({
     name: "TodoMVC-Lit-Complex-DOM",
-    url: "todomvc/architecture-examples/lit-complex/dist/index.html",
+    url: "resources/todomvc/architecture-examples/lit-complex/dist/index.html",
     tags: ["todomvc", "webcomponents", "complex", "complex-default"],
     async prepare(page) {
         await page.waitForElement("todo-app");
@@ -803,7 +868,7 @@ Suites.push({
 // freezes
 Suites.push({
     name: "NewsSite-Next",
-    url: "newssite/news-next/dist/index.html#/home",
+    url: "resources/newssite/news-next/dist/index.html#/home",
     tags: ["newssite", "language"],
     async prepare(page) {
         await page.waitForElement("#navbar-dropdown-toggle");
@@ -846,7 +911,7 @@ Suites.push({
 // svg
 Suites.push({
     name: "NewsSite-Nuxt",
-    url: "newssite/news-nuxt/dist/index.html",
+    url: "resources/newssite/news-nuxt/dist/index.html",
     tags: ["newssite"],
     async prepare(page) {
         await page.waitForElement("#navbar-dropdown-toggle");
@@ -888,7 +953,7 @@ Suites.push({
 // type errors but reports results
 Suites.push({
     name: "Editor-CodeMirror",
-    url: "editors/dist/codemirror.html",
+    url: "resources/editors/dist/codemirror.html",
     tags: ["editor"],
     async prepare(page) {},
     tests: [
@@ -908,7 +973,7 @@ Suites.push({
 /*
 Suites.push({
     name: "Editor-TipTap",
-    url: "editors/dist/tiptap.html",
+    url: "resources/editors/dist/tiptap.html",
     tags: ["editor"],
     async prepare(page) {},
     tests: [
@@ -929,7 +994,7 @@ Suites.push({
 // works
 Suites.push({
     name: "Charts-observable-plot",
-    url: "charts/dist/observable-plot.html",
+    url: "resources/charts/dist/observable-plot.html",
     tags: ["chart"],
     async prepare(page) {},
     tests: [
@@ -957,7 +1022,7 @@ Suites.push({
 // errors but reports results
 Suites.push({
     name: "Charts-chartjs",
-    url: "charts/dist/chartjs.html",
+    url: "resources/charts/dist/chartjs.html",
     tags: ["chart"],
     async prepare(page) {},
     tests: [
@@ -978,7 +1043,7 @@ Suites.push({
 /*
 Suites.push({
     name: "React-Stockcharts-SVG",
-    url: "react-stockcharts/build/index.html?type=svg",
+    url: "resources/react-stockcharts/build/index.html?type=svg",
     tags: ["chart", "svg"],
     async prepare(page) {
         await page.waitForElement("#render");
@@ -1018,7 +1083,7 @@ Suites.push({
 
 Suites.push({
     name: "Perf-Dashboard",
-    url: "perf.webkit.org/public/v3/#/charts/?since=1678991819934&paneList=((55-1974-null-null-(5-2.5-500)))",
+    url: "resources/perf.webkit.org/public/v3/#/charts/?since=1678991819934&paneList=((55-1974-null-null-(5-2.5-500)))",
     tags: ["chart", "webcomponents"],
     async prepare(page) {
         await page.waitForElement("#app-is-ready");
@@ -1061,8 +1126,8 @@ Object.freeze(Suites);
 Suites.forEach((suite) => {
     if (!suite.tags)
         suite.tags = [];
-    if (suite.url.startsWith("tentative/"))
-        suite.tags.unshift("all", "tentative");
+    if (suite.url.startsWith("experimental/"))
+        suite.tags.unshift("all", "experimental");
     else if (suite.disabled)
         suite.tags.unshift("all");
     else
@@ -1071,7 +1136,7 @@ Suites.forEach((suite) => {
     Object.freeze(suite.steps);
 });
 
-export const Tags = new Set(["all", "default", "tentative", ...Suites.flatMap((suite) => suite.tags)]);
+export const Tags = new Set(["all", "default", "experimental", ...Suites.flatMap((suite) => suite.tags)]);
 Object.freeze(Tags);
 
 globalThis.Suites = Suites;
